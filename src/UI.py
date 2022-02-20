@@ -29,6 +29,9 @@ def render_gui(self):
     Label(self.container_before, text="Tasa de aprendizaje:").grid(row=1, column=0)
     self.learning_rate = Entry(self.container_before)
 
+    Label(self.container_before, text="Error mínimo deseado:").grid(row=2, column=0)
+    self.min_error = Entry(self.container_before)
+
     self.weight_btn = Button(self.container_before, text="Inicializar pesos", command=self.init_weights, state=DISABLED)
     self.run_btn = Button(self.container_before, text="Entrenar", command=self.run, state=DISABLED)
 
@@ -41,6 +44,7 @@ def render_gui(self):
 
     self.max_iter.grid(row=0, column=1)
     self.learning_rate.grid(row=1, column=1)
+    self.min_error.grid(row=2, column=1)
     self.weight_btn.grid(row=0, column=2)
     self.run_btn.grid(row=1, column=2)
     self.analyse.grid(row=0, column=0)

@@ -108,6 +108,7 @@ class Adaline:
                 messagebox.showwarning("Error", "El tasa de aprendizaje debe de ser mayor a 0 y menor a 1")
                 self.max_iter.delete(0, 'end')
                 self.learning_rate.delete(0, 'end')
+                self.min_error.delete(0, 'end')
                 return
         except:
             if self.learning_rate.get() == "":
@@ -116,6 +117,7 @@ class Adaline:
                 messagebox.showwarning("Error", "Asegurese de ingresar datos númericos validos")
                 self.max_iter.delete(0, 'end')
                 self.learning_rate.delete(0, 'end')
+                self.min_error.delete(0, 'end')
                 return
         try:
             self.epochs = int(self.max_iter.get())
@@ -123,12 +125,32 @@ class Adaline:
                 messagebox.showwarning("Error", "No pueden haber épocas menores o iguales a cero")
                 self.max_iter.delete(0, 'end')
                 self.learning_rate.delete(0, 'end')
+                self.min_error.delete(0, 'end')
                 return
         except:
             if (self.max_iter.get() == ""):
                 self.epochs = 25
             else:
                 messagebox.showwarning("Error", "Asegurese de ingresar datos númericos validos")
+                self.max_iter.delete(0, 'end')
+                self.learning_rate.delete(0, 'end')
+                self.min_error.delete(0, 'end')
+                return
+
+        try:
+            self.desired_error = float(self.min_error.get())
+            if self.desired_error <= 0:
+                messagebox.showwarning("Error", "No pueden haber un error menor o iguales a cero")
+                self.min_error.delete(0, 'end')
+                self.max_iter.delete(0, 'end')
+                self.learning_rate.delete(0, 'end')
+                return
+        except:
+            if (self.min_error.get() == ""):
+                self.desired_error = 0.01
+            else:
+                messagebox.showwarning("Error", "Asegurese de ingresar datos númericos validos")
+                self.min_error.delete(0, 'end')
                 self.max_iter.delete(0, 'end')
                 self.learning_rate.delete(0, 'end')
                 return
@@ -198,7 +220,6 @@ class Adaline:
         # incorporamos el fator 2 del error
         # en la tasa de aprendizaje
         self.lr *= 2
-        self.desired_error = 0.01
 
         while(not done):
             done = True
@@ -220,7 +241,7 @@ class Adaline:
                 done = False
             self.acum_error.append(np.sum(np.abs(self.Y - y)))
             self.iter += 1
-            if (self.iter == 100 or acum_error < self.desired_error):
+            if (self.iter == self.epochs or acum_error < self.desired_error):
                 self.is_converge['text'] = "Límite de epocas alcanzada (set de datos sin solución)"
                 done = True
 
@@ -293,4 +314,5 @@ class Adaline:
         self.run_btn["state"] = DISABLED
         self.learning_rate.delete(0, 'end')
         self.max_iter.delete(0, 'end')
+        self.min_error.delete(0, 'end')
         self.clear_plot()
