@@ -209,25 +209,24 @@ class Adaline:
     def train(self):
         """Entrena el Adaline"""
         m, _ = self.X.shape
-        pw = 0
         done = False
-        y = np.zeros_like(self.Y)
         self.iter = 0
 
         # normalizamos los datos
-        self.norm_data()
+        # self.norm_data()
 
         # incorporamos el fator 2 del error
         # en la tasa de aprendizaje
         self.lr *= 2
 
         while(not done):
+            acum_sqr_error = 0
             done = True
             for i in range(m):
                 net = np.dot(self.W[: -1], self.X[i, :]) + self.W[-1]
                 f_y = self.sigmoid(net)
-                error = (self.Y[i] - f_y)
-                acum_error = error ** 2
+                error = self.Y[i] - f_y
+                acum_sqr_error += error ** 2
 
                 # actualizamos los pesos
                 A = self.lr * error * f_y * (1 - f_y)
@@ -239,13 +238,13 @@ class Adaline:
                 self.plot_training_data()
                 self.plot_line('g')
                 done = False
-            self.acum_error.append(np.sum(np.abs(self.Y - y)))
+            self.acum_error.append(acum_sqr_error)
             self.iter += 1
-            if (self.iter == self.epochs or acum_error < self.desired_error):
+            if (self.iter == self.epochs or acum_sqr_error < self.desired_error):
                 self.is_converge['text'] = "Límite de epocas alcanzada (set de datos sin solución)"
                 done = True
 
-            print(acum_error)
+            print(f"iteraciones: {self.iter} | error cuadrático: {acum_sqr_error}")
 
         if (self.iter != self.epochs):
             self.is_converge['text'] = f'El set de datos convergió en {self.iter} epocas'
