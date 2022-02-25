@@ -271,19 +271,30 @@ class Adaline:
         a = np.linspace(0, 0.9, lines)
         increment_size = 1/15
 
-        color = ("r", "b") if threshold == 1 else ("b", "r")
+        m_offset = (2.8, -2.8) 
+        m = x2[-1] - x2[0]
+        print(m)
+
+        if m > m_offset[0]:
+            threshold = not threshold
+
+        color = ("r", "b") if threshold else ("b", "r")
 
         for i in range(lines):
-            x2 = x2 + increment_size
-            x1 = x1 + increment_size
+            if m < m_offset[0]:
+                x2 = x2 + increment_size
+            if m > m_offset[0] or m < m_offset[1]:
+                x1 = x1 + increment_size
             plt.plot(x1, x2, color=color[0], alpha=a[i], lw=3)
 
         x1 = self.x1Line
         x2 = self.x2Line
 
         for i in range(lines):
-            x2 = x2 - increment_size
-            x1 = x1 - increment_size
+            if m < m_offset[0]:
+                x2 = x2 - increment_size
+            if m > m_offset[0] or m < m_offset[1]:
+                x1 = x1 - increment_size
             plt.plot(x1, x2, color=color[1], alpha=a[i], lw=3)
 
 
@@ -297,13 +308,13 @@ class Adaline:
                                  facecolor='r', alpha=0.3)
                 plt.fill_between(self.x1Line, self.ax_min, self.x2Line,
                                 facecolor='b', alpha=0.3)
-                self.add_gradient(1)
+                self.add_gradient(True)
             else:
                 plt.fill_between(self.x1Line, self.x2Line, self.ax_max,
                                  facecolor='b', alpha=0.3)
                 plt.fill_between(self.x1Line, self.ax_min, self.x2Line,
                                 facecolor='r', alpha=0.3)
-                self.add_gradient(0)
+                self.add_gradient(False)
         # Si el punto seleccionado está por arriba del umbral
         else:
             if self.Y[0] == 1:
@@ -311,13 +322,13 @@ class Adaline:
                                  facecolor='b', alpha=0.3)
                 plt.fill_between(self.x1Line, self.ax_min, self.x2Line,
                                  facecolor='r', alpha=0.3)
-                self.add_gradient(0)
+                self.add_gradient(False)
             else:
                 plt.fill_between(self.x1Line, self.x2Line, self.ax_max,
                                  facecolor='r', alpha=0.3)
                 plt.fill_between(self.x1Line, self.ax_min, self.x2Line,
                                  facecolor='b', alpha=0.3)
-                self.add_gradient(1)
+                self.add_gradient(True)
         self.fig.canvas.draw()
 
     def restart(self):
