@@ -65,9 +65,9 @@ class Adaline:
         else:
             # se capturan los datos para evaluar
             if (len(self.test_data) == 0):
-                self.test_data = np.array([[event.xdata, event.ydata]])
+                self.test_data = np.array([[event.xdata, event.ydata, cluster]])
             else:
-                self.test_data = np.append(self.test_data, [[event.xdata, event.ydata]], axis=0)
+                self.test_data = np.append(self.test_data, [[event.xdata, event.ydata, cluster]], axis=0)
             self.plot_point((event.xdata, event.ydata))
 
         # si se ingresan como minimo 2 puntos de clases distintas,
@@ -196,7 +196,7 @@ class Adaline:
 
         # obtenemos las clases correctas del set de datos de prueba
         for i in self.test_data:
-            net = np.dot(self.W[: -1], i) + self.W[-1]
+            net = np.dot(self.W[: -1], i[: -1]) + self.W[-1]
             f_y = self.sigmoid(net)
             
             if f_y > 0.5:
@@ -260,10 +260,6 @@ class Adaline:
                 self.plot_line('g')
                 done = False
                 
-                if f_y > 0.5:
-                    self.predicted_class0 += 1
-                else:
-                    self.predicted_class1 += 1
             self.acum_error.append(acum_sqr_error)
             self.iter += 1
 
@@ -279,15 +275,16 @@ class Adaline:
         self.plot_line('b')
         render_conv(self)
         # render_confusion_matrix(self)
-        self.create_confusion_matrix()
         plt.figure(2)
         plt.plot([ i for i in range(1, len(self.acum_error) + 1) ], self.acum_error)
         plt.figure(1)
 
     def create_confusion_matrix(self):
         """Imprime la matriz de confusión en la pantalla"""
-        real0 = np.count_nonzero(self.Y != 0)
-        real1 = np.count_nonzero(self.Y != 1)
+        print(self.test_data, "\n")
+        print(self.test_data[:, -1])
+        real0 = np.count_nonzero(self.test_data[:, -1] != 0)
+        real1 = np.count_nonzero(self.test_data[:, -1] != 1)
         print("real0: ", real0, " | real1: ", real1)
 
         print(f" n | clase 0 predicha | clase 1 predicha | sumatoria" \
