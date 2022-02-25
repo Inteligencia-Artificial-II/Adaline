@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from tkinter import NORMAL, DISABLED, messagebox
-from src.UI import render_gui, render_conv
+from src.UI import render_confusion_matrix, render_gui, render_conv
 import numpy as np
 
 class Adaline:
@@ -32,6 +32,10 @@ class Adaline:
 
         # Error acumulado
         self.acum_error = []
+
+        # Contador de clases predicha
+        self.predicted_class0 = 0
+        self.predicted_class1 = 0
 
         self.iter = None
 
@@ -176,6 +180,11 @@ class Adaline:
         self.plot_training_data()
         self.plot_line('r')
 
+    def perceptron(self):
+        pass
+
+    def adaline(self):
+        pass
 
     def evaluate(self):
         """Toma los datos de prueba y los categoriza"""
@@ -187,9 +196,19 @@ class Adaline:
 
         # obtenemos las clases correctas del set de datos de prueba
         for i in self.test_data:
-            res = np.dot(self.W[: -1], i) + self.W[-1]
-            cluster = 1 if res > 0 else 0
+            net = np.dot(self.W[: -1], i) + self.W[-1]
+            f_y = self.sigmoid(net)
+            
+            if f_y > 0.5:
+                self.predicted_class1 += 1
+                cluster = 1
+            else:
+                self.predicted_class0 += 1
+                cluster = 0
+
             self.plot_point(i, cluster)
+
+        self.create_confusion_matrix()
 
         # gráficamos todos los datos en el plano
         self.fig.canvas.draw()
@@ -222,6 +241,8 @@ class Adaline:
         while(not done):
             acum_sqr_error = 0
             done = True
+            self.predicted_class0 = 0
+            self.predicted_class1 = 0
             for i in range(m):
                 net = np.dot(self.W[: -1], self.X[i, :]) + self.W[-1]
                 f_y = self.sigmoid(net)
@@ -238,8 +259,14 @@ class Adaline:
                 self.plot_training_data()
                 self.plot_line('g')
                 done = False
+                
+                if f_y > 0.5:
+                    self.predicted_class0 += 1
+                else:
+                    self.predicted_class1 += 1
             self.acum_error.append(acum_sqr_error)
             self.iter += 1
+
             if (self.iter == self.epochs or acum_sqr_error < self.desired_error):
                 self.is_converge['text'] = "Límite de epocas alcanzada (set de datos sin solución)"
                 done = True
@@ -251,9 +278,21 @@ class Adaline:
             self.analyse["state"] = NORMAL
         self.plot_line('b')
         render_conv(self)
+        # render_confusion_matrix(self)
+        self.create_confusion_matrix()
         plt.figure(2)
         plt.plot([ i for i in range(1, len(self.acum_error) + 1) ], self.acum_error)
         plt.figure(1)
+
+    def create_confusion_matrix(self):
+        """Imprime la matriz de confusión en la pantalla"""
+        real0 = np.count_nonzero(self.Y != 0)
+        real1 = np.count_nonzero(self.Y != 1)
+        print("real0: ", real0, " | real1: ", real1)
+
+        print(f" n | clase 0 predicha | clase 1 predicha | sumatoria" \
+               " clase 0 real | {}" \
+               " clase 1 real | ")
 
     def plot_line(self, color):
         """gráfica la recta que clasifica los datos del plano"""
@@ -296,7 +335,6 @@ class Adaline:
             if m > m_offset[0] or m < m_offset[1]:
                 x1 = x1 - increment_size
             plt.plot(x1, x2, color=color[1], alpha=a[i], lw=3)
-
 
 
     def plot_area_color(self):
@@ -342,6 +380,8 @@ class Adaline:
         self.container_after.grid_remove()
         self.X = []
         self.Y = []
+        self.predicted_class0 = 0
+        self.predicted_class1 = 0
         self.test_data = []
         self.is_training = True
         self.epochs = 0
