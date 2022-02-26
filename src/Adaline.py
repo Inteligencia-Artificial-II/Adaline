@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.backend_bases import MouseButton
 from tkinter import NORMAL, DISABLED, messagebox
 from src.UI import render_confusion_matrix, render_gui, render_conv
 import numpy as np
@@ -33,9 +34,11 @@ class Adaline:
         # Error acumulado
         self.acum_error = []
 
-        # Contador de clases predicha
-        self.predicted_class0 = 0
-        self.predicted_class1 = 0
+        # Contadores de matriz de confusión
+        self.true_0 = 0
+        self.true_1 = 0
+        self.negative_1 = 0
+        self.negative_0 = 0
 
         self.iter = None
 
@@ -43,9 +46,8 @@ class Adaline:
         render_gui(self)
 
     def set_point(self, event):
-        right_click = 1
         # el cluster guarda tanto la clase como el simbolo que graficará 
-        cluster = 1 if (event.button == right_click) else 0
+        cluster = 1 if (event.button == MouseButton.RIGHT) else 0
 
         # evitamos puntos que se encuentren fuera del plano
         if (event.xdata == None or event.ydata == None): return
@@ -198,13 +200,7 @@ class Adaline:
         for i in self.test_data:
             net = np.dot(self.W[: -1], i) + self.W[-1]
             f_y = self.sigmoid(net)
-            
-            if f_y > 0.5:
-                self.predicted_class1 += 1
-                cluster = 1
-            else:
-                self.predicted_class0 += 1
-                cluster = 0
+            cluster = 1 if f_y > 0.5 else 0
 
             self.plot_point(i, cluster)
 
@@ -241,8 +237,10 @@ class Adaline:
         while(not done):
             acum_sqr_error = 0
             done = True
-            self.predicted_class0 = 0
-            self.predicted_class1 = 0
+            self.false_0 = 0
+            self.false_1 = 0
+            self.true_0 = 0
+            self.true_1 = 0
             for i in range(m):
                 net = np.dot(self.W[: -1], self.X[i, :]) + self.W[-1]
                 f_y = self.sigmoid(net)
@@ -260,10 +258,19 @@ class Adaline:
                 self.plot_line('g')
                 done = False
                 
-                if f_y > 0.5:
-                    self.predicted_class0 += 1
+                # Cuando el predicho es clase 0
+                if f_y <= 0.5:
+                    if self.Y[i] == 0:
+                        self.true_0 += 1
+                    else:
+                        self.false_0 += 1
+                # Cuando el predicho es clase 1
                 else:
-                    self.predicted_class1 += 1
+                    if self.Y[i] == 1:
+                        self.true_1 += 1
+                    else:
+                        self.false_1 += 1
+                    
             self.acum_error.append(acum_sqr_error)
             self.iter += 1
 
@@ -286,13 +293,10 @@ class Adaline:
 
     def create_confusion_matrix(self):
         """Imprime la matriz de confusión en la pantalla"""
-        real0 = np.count_nonzero(self.Y != 0)
-        real1 = np.count_nonzero(self.Y != 1)
-        print("real0: ", real0, " | real1: ", real1)
-
-        print(f" n | clase 0 predicha | clase 1 predicha | sumatoria" \
-               " clase 0 real | {}" \
-               " clase 1 real | ")
+        print(f"|n             | Clase 0 predicha | Clase 1 predicha | Totales ")
+        print(f"| Clase 0 real | {self.true_0} | {self.false_1} | {self.true_0 + self.false_1} ")
+        print(f"| Clase 1 real | {self.false_0} | {self.true_1} | {self.false_0 + self.true_1} ")
+        print(f"| Suma         | {self.true_0 + self.false_0} | {self.false_1 + self.true_1} | {len(self.Y)} ")
 
     def plot_line(self, color):
         """gráfica la recta que clasifica los datos del plano"""
