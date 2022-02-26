@@ -15,23 +15,25 @@ def render_confusion_matrix(self):
     # Crea una nueva ventana hija de self.window
     self.conf_window = Toplevel(self.window)
     self.conf_window.title('Matriz de confusión')
-    self.conf_window.geometry("900x650")
+    self.conf_window.geometry("805x250")
     Label(self.conf_window, text='Matriz de confusión', font=('Arial', 20)).grid(row=0, columnspan=4)
     self.table_frame = Frame(self.conf_window)
     self.table = ttk.Treeview(self.table_frame)
-    self.table['columns'] = ('Predicciones clase 0', 'Predicciones clase 1', 'Sumatoria')
-    
-    self.table.column("#0", width=40, stretch=NO)
+    self.table['columns'] = ('n','Predicciones clase 0', 'Predicciones clase 1', 'Sumatoria')
+    self.table.column("#0", width=0,  stretch=NO, anchor=CENTER)
+
+    for i in range(4):
+        self.table.column(i, anchor=CENTER)   
+
+    self.table.heading("#0",text="", anchor=CENTER)
     for i in self.table['columns']:
-        self.table.column(i, width=80, anchor=CENTER)
+        self.table.heading(i, text=i, anchor=CENTER)
 
-
-    self.table_frame.grid(row=1, columnspan=3)
+    self.table_frame.grid(rowspan=4, columnspan=4)
     self.table.grid(row=0)
     
 def render_gui(self):
     """Definimos la interfaz gráfica de usuario"""
-    self.window = Tk()
     self.window.title('Adaline')
     self.window.geometry("650x650")
 
@@ -74,4 +76,3 @@ def render_gui(self):
 
     # termina el programa al hacer click en la X roja de la ventana
     self.window.protocol('WM_DELETE_WINDOW', lambda: quit())
-    self.window.mainloop()

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import MouseButton
-from tkinter import NORMAL, DISABLED, messagebox
+from tkinter import NORMAL, DISABLED, messagebox, Tk
 from src.UI import render_confusion_matrix, render_gui, render_conv
 import numpy as np
 
@@ -43,7 +43,9 @@ class Adaline:
         self.iter = None
 
         # llama a la interfaz gráfica
+        self.window = Tk()
         render_gui(self)
+        self.window.mainloop()
 
     def set_point(self, event):
         # el cluster guarda tanto la clase como el simbolo que graficará 
@@ -285,7 +287,6 @@ class Adaline:
             self.analyse["state"] = NORMAL
         self.plot_line('b')
         render_conv(self)
-        # render_confusion_matrix(self)
         self.create_confusion_matrix()
         plt.figure(2)
         plt.plot([ i for i in range(1, len(self.acum_error) + 1) ], self.acum_error)
@@ -293,10 +294,19 @@ class Adaline:
 
     def create_confusion_matrix(self):
         """Imprime la matriz de confusión en la pantalla"""
-        print(f"|n             | Clase 0 predicha | Clase 1 predicha | Totales ")
-        print(f"| Clase 0 real | {self.true_0} | {self.false_1} | {self.true_0 + self.false_1} ")
-        print(f"| Clase 1 real | {self.false_0} | {self.true_1} | {self.false_0 + self.true_1} ")
-        print(f"| Suma         | {self.true_0 + self.false_0} | {self.false_1 + self.true_1} | {len(self.Y)} ")
+        # print(f"|n             | Clase 0 predicha | Clase 1 predicha | Totales ")
+        # print(f"| Clase 0 real | {self.true_0} | {self.false_1} | {self.true_0 + self.false_1} ")
+        # print(f"| Clase 1 real | {self.false_0} | {self.true_1} | {self.false_0 + self.true_1} ")
+        # print(f"| Suma         | {self.true_0 + self.false_0} | {self.false_1 + self.true_1} | {len(self.Y)} ")
+        render_confusion_matrix(self)         
+
+        self.table.insert(parent='',index='end',iid=0, text='', 
+        values=( 'Clase 0 real', self.true_0, self.false_1, self.true_0 + self.false_1 ))
+        self.table.insert(parent='',index='end',iid=1, text='',
+        values=( 'Clase 1 real', self.false_0, self.true_1, self.false_0 + self.true_1 ))    
+        self.table.insert(parent='',index='end',iid=2, text='',
+        values=( 'Suma', self.true_0 + self.false_0, self.false_1 + self.true_1, len(self.Y) ))  
+
 
     def plot_line(self, color):
         """gráfica la recta que clasifica los datos del plano"""
@@ -377,6 +387,7 @@ class Adaline:
         """devuelve los valores y elementos gráficos a su estado inicial"""
         # cierra la ventana de la gráfica de convergencia
         self.conv_window.destroy()
+        self.conf_window.destroy()
         self.clear_plot(2)
         plt.figure(1)
         self.acum_error.clear()
