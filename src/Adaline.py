@@ -159,7 +159,7 @@ class Adaline:
                 return
         except:
             if (self.min_error.get() == ""):
-                self.desired_error = 0.01
+                self.desired_error = 0.05
             else:
                 messagebox.showwarning("Error", "Asegurese de ingresar datos númericos validos")
                 self.min_error.delete(0, 'end')
@@ -235,8 +235,6 @@ class Adaline:
             cluster = 1 if f_y > 0.5 else 0
 
             self.plot_point(i, cluster)
-
-        self.create_confusion_matrix()
 
         # gráficamos todos los datos en el plano
         self.fig.canvas.draw()
@@ -350,12 +348,41 @@ class Adaline:
 
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
+
+    def get_line_increment(self):
+        size = self.x1Line[0] - self.x1Line[1]
+        acum1 = self.x1Line[0]
+        acum2 = self.x1Line[-1] 
+        auxBegin = []
+        auxEnd = []
+        increment = 100
+        for i in range(increment):
+            acum1 += size
+            acum2 -= size
+            auxBegin.append(acum1)
+            auxEnd.append(acum2)
+
+        acum1 = self.x2Line[0]
+        acum2 = self.x2Line[-1]
+        x1 = np.concatenate((auxBegin, self.x1Line, auxEnd))
+
+        auxBegin.clear()
+        auxEnd.clear()
+
+        for i in range(increment):
+            acum1 += size
+            acum2 -= size
+            auxBegin.append(acum1)
+            auxEnd.append(acum2)
+
+        x2 = np.concatenate((auxBegin, self.x2Line, auxEnd))
+        return x1, x2
     
     def add_gradient(self, threshold):
         """Dibuja el gradiente"""
-        x1 = self.x1Line
-        x2 = self.x2Line
-        lines = 150
+        x1, x2 = self.get_line_increment()
+
+        lines = 350
         a = np.linspace(0, 0.9, lines)
         increment_size = 1/15
 
@@ -373,17 +400,16 @@ class Adaline:
                 x2 = x2 + increment_size
             if m > m_offset[0] or m < m_offset[1]:
                 x1 = x1 + increment_size
-            plt.plot(x1, x2, color=color[0], alpha=a[i], lw=3)
+            plt.plot(x1, x2, color=color[0], alpha=a[i])
 
-        x1 = self.x1Line
-        x2 = self.x2Line
+        x1, x2 = self.get_line_increment()
 
         for i in range(lines):
             if m < m_offset[0]:
                 x2 = x2 - increment_size
             if m > m_offset[0] or m < m_offset[1]:
                 x1 = x1 - increment_size
-            plt.plot(x1, x2, color=color[1], alpha=a[i], lw=3)
+            plt.plot(x1, x2, color=color[1], alpha=a[i])
 
 
     def plot_area_color(self):
