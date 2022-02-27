@@ -26,7 +26,7 @@ class Adaline:
         # bandera para evaluar datos despues del entrenamiento
         self.is_training = True
 
-        # Parámetros para el algoritmos
+        # Parámetros para el algoritmo
         self.epochs = 0 # epocas o generaciones máximas
         self.W = [] # pesos
         self.lr = 0.0 # tasa de aprendizaje
@@ -41,6 +41,10 @@ class Adaline:
         self.negative_0 = 0
 
         self.iter = None
+
+        # Puntos extra
+        # Parámetros y métodos para el perceptron
+        self.W_p = []
 
         # llama a la interfaz gráfica
         self.window = Tk()
@@ -173,7 +177,15 @@ class Adaline:
     def init_weights(self):
         """Se ejecuta al presionar el botón «inicializar pesos»"""
         # Sacamos el random para los pesos
-        self.W = np.random.uniform(-1, 1, self.X.shape[1] + 1)
+        weights = np.random.uniform(-1, 1, self.X.shape[1] + 1) 
+
+        # Adaline
+        self.W = np.copy(weights)
+
+        # Perceptron
+        self.W_p = np.copy(weights)
+
+        del weights
 
         # habilitamos el botón para iniciar el algoritmo
         self.run_btn["state"] = NORMAL
@@ -182,11 +194,29 @@ class Adaline:
         self.x1Line = np.linspace(-5, 5, 100)
         self.clear_plot()
         self.plot_training_data()
-        self.plot_line('r')
+        self.plot_line('r', True)
 
     def perceptron(self):
-        pass
+        """Entrena el perceptrón"""
+        m, _ = self.X.shape
+        pw = 0
+        done = False
+        y = np.zeros_like(self.Y)
 
+        while(not done):
+            done = True
+            for i in range(m):
+                net = np.dot(self.W_p[: -1], self.X[i, :]) + self.W_p[-1]
+                pw = 1 if net > 0 else 0
+                error = self.Y[i] - pw
+                y[i] = pw
+                if error != 0:
+                    done = False
+                    self.W_p[:-1] = self.W_p[:-1] + np.multiply((self.lr * error), self.X[i, :])
+                    self.W_p[-1] = self.W_p[-1] + self.lr * error
+        
+        self.plot_line('orangered', False)
+        
     def adaline(self):
         pass
 
@@ -196,7 +226,7 @@ class Adaline:
         self.clear_plot()
         self.plot_training_data()
         self.plot_area_color()
-        self.plot_line('b')
+        self.plot_line('orangered', False)
 
         # obtenemos las clases correctas del set de datos de prueba
         for i in self.test_data:
@@ -257,7 +287,7 @@ class Adaline:
                 # gráficamos la recta que separa los datos
                 self.clear_plot()
                 self.plot_training_data()
-                self.plot_line('g')
+                self.plot_line('g', True)
                 done = False
                 
                 # Cuando el predicho es clase 0
@@ -285,7 +315,11 @@ class Adaline:
         if (self.iter != self.epochs):
             self.is_converge['text'] = f'El set de datos convergió en {self.iter} epocas'
             self.analyse["state"] = NORMAL
-        self.plot_line('b')
+        self.plot_line('b', True)
+
+        # llamado al entrenamiento del perceptron
+        self.perceptron()
+        
         render_conv(self)
         self.create_confusion_matrix()
         plt.figure(2)
@@ -294,10 +328,6 @@ class Adaline:
 
     def create_confusion_matrix(self):
         """Imprime la matriz de confusión en la pantalla"""
-        # print(f"|n             | Clase 0 predicha | Clase 1 predicha | Totales ")
-        # print(f"| Clase 0 real | {self.true_0} | {self.false_1} | {self.true_0 + self.false_1} ")
-        # print(f"| Clase 1 real | {self.false_0} | {self.true_1} | {self.false_0 + self.true_1} ")
-        # print(f"| Suma         | {self.true_0 + self.false_0} | {self.false_1 + self.true_1} | {len(self.Y)} ")
         render_confusion_matrix(self)         
 
         self.table.insert(parent='',index='end',iid=0, text='', 
@@ -308,11 +338,16 @@ class Adaline:
         values=( 'Suma', self.true_0 + self.false_0, self.false_1 + self.true_1, len(self.Y) ))  
 
 
-    def plot_line(self, color):
+    def plot_line(self, color, algorithm = True):
         """gráfica la recta que clasifica los datos del plano"""
         plt.figure(1)
-        self.x2Line = (-self.W[0] * self.x1Line - self.W[-1]) / self.W[1]
-        plt.plot(self.x1Line, self.x2Line, color=color)
+        if(algorithm):
+            self.x2Line = (-self.W[0] * self.x1Line - self.W[-1]) / self.W[1]
+            plt.plot(self.x1Line, self.x2Line, color=color)
+        else:
+            self.x2Line_p = (-self.W_p[0] * self.x1Line - self.W_p[-1]) / self.W_p[1]
+            plt.plot(self.x1Line, self.x2Line_p, color=color) 
+
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
     
